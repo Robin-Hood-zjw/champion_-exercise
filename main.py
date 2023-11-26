@@ -1,5 +1,3 @@
-import json
-# 
 # Reads all data from a .Json file (use the attached file trainings.txt).
 # Generate output as JSON in the three following ways.
 
@@ -12,22 +10,55 @@ import json
 # Use date: Oct 1st, 2023
 
 # A note for all tasks. It is possible for a person to have completed the same training more than once. In this event, only the most recent completion should be considered.
+import json
+from datetime import datetime
+
 with open('./trainings.txt', 'r') as file:
     data = json.load(file)
 
-uniq_training_dict = dict()
+# uniq_training_dict = dict()
 
-for record in data:
-    person_name = record['name']
+# for record in data:
+#     person_name = record['name']
 
-    for training in record['completions']:
-        training_name = training['name']
+#     for training in record['completions']:
+#         training_name = training['name']
 
-        if training_name not in uniq_training_dict:
-            uniq_training_dict[training_name] = dict()
-            uniq_training_dict[training_name]['uniq_people'] = set()
+#         if training_name not in uniq_training_dict:
+#             uniq_training_dict[training_name] = dict()
+#             uniq_training_dict[training_name]['uniq_people'] = set()
 
-        uniq_training_dict[training_name]['uniq_people'].add(person_name)
+#         uniq_training_dict[training_name]['uniq_people'].add(person_name)
 
-for key, val in uniq_training_dict.items():
-    print(f"Training Type: {key} -- Completed Count: {len(list(val['uniq_people']))}\n")
+# for key, val in uniq_training_dict.items():
+#     print(f"Training Type: {key} -- Completed Count: {len(list(val['uniq_people']))}\n")
+
+def check_specific_training_list(types=['Electrical Safety for Labs', 'X-Ray Safety', 'Laboratory Safety Training'], year=2024):
+    db_info = dict()
+    date_start, date_end = datetime(year - 1, 7, 1), datetime(year, 6, 30)
+
+    for record in data:
+        person_name = record['name']
+
+        for detail in record['completions']:
+            training_name = detail['name']
+            time_stamp = detail['timestamp'].split('/')
+
+
+            cur_date = datetime(int(time_stamp[2]), int(time_stamp[0]), int(time_stamp[1]))
+            if cur_date > date_start and cur_date < date_end:
+                if training_name not in db_info:
+                    db_info[training_name] = set()
+                
+                db_info[training_name].add(person_name)
+
+
+    for key, val in db_info.items():
+        uniq_people = list(val)
+
+        for people in uniq_people:
+            print(f"Training Type: {key} ----- Person Name: {people}")
+
+        print('\n')
+
+check_specific_training_list()
