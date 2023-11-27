@@ -22,7 +22,12 @@ def read_data(path: str) -> list:
 
     return data
 
-def test_1(source) -> None:
+def output_json_file(path: str, data: list) -> dict:
+    with open(path, 'w') as json_file:
+        json.dump(data, json_file, indent=2)
+
+
+def test_1(source) -> dict:
     uniq_training_dict = dict()
 
     for record in source:
@@ -37,12 +42,13 @@ def test_1(source) -> None:
 
             uniq_training_dict[training_name]['uniq_people'].add(person_name)
 
-    print("\nThe Results of the Test#1 as below:")
-    for key, val in uniq_training_dict.items():
-        print(f"Training Type: {key} -- Completed Count: {len(list(val['uniq_people']))}")
-    print("\n")
+    uniq_training_cnt = dict()
+    for training, people in uniq_training_dict.items():
+        uniq_training_cnt[training] = len(list(people))
 
-def test_2(source, types, year) -> None:
+    return uniq_training_cnt
+
+def test_2(source, types, year) -> dict:
     db_info = dict()
     date_start, date_end = datetime(year - 1, 7, 1), datetime(year, 6, 30)
 
@@ -53,7 +59,6 @@ def test_2(source, types, year) -> None:
             training_name = detail['name']
             time_stamp = detail['timestamp'].split('/')
 
-
             cur_date = datetime(int(time_stamp[2]), int(time_stamp[0]), int(time_stamp[1]))
             if cur_date > date_start and cur_date < date_end and training_name in types:
                 if training_name not in db_info:
@@ -61,17 +66,13 @@ def test_2(source, types, year) -> None:
                 
                 db_info[training_name].add(person_name)
 
-    print("\nThe Results of the Test#2 as below:")
-    for key, val in db_info.items():
-        uniq_people = list(val)
 
-        for people in uniq_people:
-            print(f"Training Type: {key} ----- Person Name: {people}")
+    for training, group in db_info.items():
+        db_info[training] = list(group)
+    
+    return db_info
 
-        print('\n')
-
-
-def test_3(source, year, month, day) -> None:
+def test_3(source, year, month, day) -> dict:
     db_info = dict()
     date1 = datetime(year, month, day)
     date2 = date1 - timedelta(days=30)
@@ -93,20 +94,20 @@ def test_3(source, year, month, day) -> None:
                     db_info[person_name] = dict()
                 db_info[person_name][training_name] = 'expired'
 
-    for person_name, training_dict in db_info.items():
-        # print(f"Person Name: {person_name}")
-        for training_name, status in training_dict.items():
-            print(f"Person Name: {person_name}  -----  {training_name}  -----  status: {status}")
-        # print("\n")
+    return db_info
 
 if __name__ == "__main__":
     default_file_path = './trainings.txt'
     source = read_data(default_file_path)
-    test_1(source=source)
+
+    data1 = test_1(source=source)
+    output_json_file('./output1.json', data1)
 
     default_types = ['Electrical Safety for Labs', 'X-Ray Safety', 'Laboratory Safety Training']
     default_fiscal_year = 2024
-    test_2(source, default_types, default_fiscal_year)
+    data2 = test_2(source, default_types, default_fiscal_year)
+    output_json_file('./output2.json', data2)
 
     default_date = datetime(2023, 10, 1)
-    test_3(source, 2023, 10, 1)
+    data3 = test_3(source, 2023, 10, 1)
+    output_json_file('./output3.json', data3)
